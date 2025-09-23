@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor HTML</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Fira Code', monospace;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:#0d0d0d;
+    color:#a0ff9e;
+  }
+
+  header {
+    padding:15px 20px;
+    font-size:26px;
+    font-weight:500;
+    text-align:center;
+    background:#111111;
+    color:#a0ff9e;
+    border-bottom:1px solid #2a2a2a;
+    letter-spacing:1px;
+  }
+
+  #container {
+    flex:1;
+    display:flex;
+    overflow:hidden;
+  }
+
+  #editor-panel {
+    flex:1;
+    min-width:300px;
+    max-width:70%;
+    resize: horizontal;
+    cursor: ew-resize;
+    background:#0b0b0b;
+    padding:15px;
+    border-right:3px solid #1f1f1f;
+    display:flex;
+    flex-direction:column;
+    border-radius:0 8px 8px 0;
+    transition:flex 0.2s ease;
+    box-shadow: inset 0 0 20px rgba(160,255,158,0.15);
+  }
+
+  textarea {
+    flex:1;
+    width:100%;
+    font-family:'Fira Code', monospace;
+    font-size:16px;
+    background:#0b0b0b;
+    color:#a0ff9e;
+    border:none;
+    border-radius:6px;
+    padding:12px;
+    line-height:1.5;
+    resize:none;
+    outline:none;
+    caret-color:#a0ff9e;
+    box-shadow: inset 0 0 10px rgba(160,255,158,0.1);
+    transition: box-shadow 0.2s ease;
+  }
+
+  textarea:focus {
+    box-shadow: inset 0 0 20px rgba(160,255,158,0.25);
+  }
+
+  #preview-panel {
+    flex:1;
+    margin-left:10px;
+    background:#f9f9f9;
+    border-radius:8px;
+    overflow:hidden;
+    display:flex;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+  }
+
+  #preview-panel iframe {
+    flex:1;
+    width:100%;
+    height:100%;
+    border:none;
+    border-radius:8px;
+    background:#fff;
+  }
+
+  footer {
+    padding:12px 20px;
+    text-align:center;
+    background:#111111;
+    color:#a0ff9e;
+    font-size:14px;
+    border-top:1px solid #2a2a2a;
+  }
+
+</style>
+</head>
+<body>
+
+<header>Editor HTML</header>
+
+<div id="container">
+  <div id="editor-panel">
+    <textarea id="htmlInput" placeholder="Escribe tu HTML aquí..."></textarea>
+  </div>
+  <div id="preview-panel">
+    <iframe id="preview"></iframe>
+  </div>
+</div>
+
+<footer>Por Miguel Ojeda de 3ºC</footer>
+
+<script>
+const editorPanel = document.getElementById('editor-panel');
+const container = document.getElementById('container');
+const textarea = document.getElementById('htmlInput');
+const iframe = document.getElementById('preview');
+
+// Actualización en vivo
+textarea.addEventListener('input', () => iframe.srcdoc = textarea.value);
+iframe.srcdoc='';
+
+// Drag resize
+let isResizing=false;
+
+editorPanel.addEventListener('mousedown',(e)=>{
+  if(e.offsetX>editorPanel.offsetWidth-10){
+    isResizing=true;
+    document.body.style.cursor='ew-resize';
+  }
+});
+
+document.addEventListener('mousemove',(e)=>{
+  if(!isResizing) return;
+  let newWidth=e.clientX-container.offsetLeft;
+  if(newWidth<300) newWidth=300;
+  if(newWidth>container.offsetWidth*0.7) newWidth=container.offsetWidth*0.7;
+  editorPanel.style.flex=`0 0 ${newWidth}px`;
+});
+
+document.addEventListener('mouseup',()=>{
+  if(isResizing){
+    isResizing=false;
+    document.body.style.cursor='default';
+  }
+});
+</script>
+
+</body>
+</html>
