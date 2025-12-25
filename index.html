@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor Avanzado Código/Interfaz</title>
+<title>Editor HTML Avanzado</title>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -29,7 +29,7 @@ canvas { border:1px solid #000; margin:5px 0; }
 </head>
 <body>
 
-<header>Editor Avanzado Código/Interfaz</header>
+<header>Editor HTML Avanzado</header>
 
 <div id="modeButtons">
   <button id="codeMode" class="active">Código</button>
@@ -117,7 +117,7 @@ const lineNumbers = document.getElementById('line-numbers');
 const formatMenu = document.getElementById('formatMenu');
 let mode = 'code';
 
-// Cambiar modo
+// Modo
 function switchMode(m){
   mode = m;
   if(mode==='code'){
@@ -137,10 +137,16 @@ function switchMode(m){
 codeBtn.onclick = ()=>switchMode('code');
 uiBtn.onclick = ()=>switchMode('ui');
 
-// Funciones Toolbar
-formatMenu.addEventListener('change', e=>{ if(mode==='ui'){ document.execCommand(e.target.value,false,null); syncCode(); e.target.value=""; } });
-function setFontSize(s){ if(mode==='ui' && s) { document.execCommand('fontSize',false,s); syncCode(); } }
-function setFontFamily(f){ if(mode==='ui' && f) { document.execCommand('fontName',false,f); syncCode(); } }
+// Funciones toolbar
+formatMenu.addEventListener('change', e=>{
+  if(mode==='ui' && e.target.value){
+    document.execCommand(e.target.value,false,null);
+    syncCode();
+    e.target.value="";
+  }
+});
+function setFontSize(s){ if(mode==='ui' && s){ document.execCommand('fontSize',false,s); syncCode(); } }
+function setFontFamily(f){ if(mode==='ui' && f){ document.execCommand('fontName',false,f); syncCode(); } }
 function insertHTML(html){ if(mode==='ui'){ document.execCommand('insertHTML',false,html); syncCode(); } }
 document.getElementById('textColor').addEventListener('input', e=>{ if(mode==='ui'){ document.execCommand('foreColor', false, e.target.value); syncCode(); } });
 document.getElementById('bgColor').addEventListener('input', e=>{ if(mode==='ui'){ document.execCommand('hiliteColor', false, e.target.value); syncCode(); } });
@@ -154,8 +160,22 @@ function addCodeBlock(){ if(mode==='ui') insertHTML("<pre><code>Escribe código 
 function addButton(){ if(mode==='ui'){ const text=prompt("Texto del botón","Botón"); const link=prompt("URL del botón","#"); if(!text) return; const textColor=document.getElementById('textColor').value||'#000'; const bgColor=document.getElementById('bgColor').value||'#0f0'; insertHTML(`<a href="${link}" style="display:inline-block;padding:5px 10px;background:${bgColor};color:${textColor};border-radius:4px;text-decoration:none;">${text}</a><br>`); } }
 function addCanvas(){ if(mode==='ui') insertHTML(`<canvas width="300" height="150"></canvas>`); }
 
-// Sincronización
-function syncCode(){ textarea.value = preview.innerHTML; updateLineNumbers(); }
+// Sincronización automática con párrafos
+function syncCode(){
+  let html = preview.innerHTML;
+  // convertir texto plano fuera de etiquetas en <p>
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  wrapper.childNodes.forEach(node=>{
+    if(node.nodeType===3 && node.textContent.trim()!==""){ 
+      const p = document.createElement('p');
+      p.innerHTML = node.textContent;
+      node.replaceWith(p);
+    }
+  });
+  textarea.value = wrapper.innerHTML;
+  updateLineNumbers();
+}
 function syncPreview(){ preview.innerHTML = textarea.value; }
 
 // Bidireccional
@@ -167,7 +187,7 @@ function updateLineNumbers(){ const lines=textarea.value.split("\n").length||1; 
 textarea.addEventListener('scroll',()=>{ lineNumbers.scrollTop=textarea.scrollTop; });
 updateLineNumbers();
 
-// Resize editor
+// Resize
 const editorPanel = document.getElementById('editor-panel');
 const container = document.getElementById('container');
 let isResizing=false;
