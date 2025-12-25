@@ -49,7 +49,7 @@ const textarea = document.getElementById('htmlInput');
 const lineNumbers = document.getElementById('line-numbers');
 const preview = document.getElementById('preview');
 
-// Inicializa el iframe con un contenedor donde inyectaremos HTML
+// Inicializa iframe con un contenedor de live preview
 const doc = preview.contentDocument || preview.contentWindow.document;
 doc.open();
 doc.write(`<!DOCTYPE html>
@@ -70,18 +70,27 @@ const livePreview = doc.getElementById('livePreview');
 
 // Actualiza la preview sin recargar el iframe
 function updatePreview() {
-    // Elimina contenido anterior
-    while (livePreview.firstChild) {
-        livePreview.removeChild(livePreview.firstChild);
-    }
+    // Limpiar contenido
+    while (livePreview.firstChild) livePreview.removeChild(livePreview.firstChild);
 
-    // Crear un contenedor temporal para parsear el HTML
+    // Crear contenedor temporal para parsear HTML
     const temp = document.createElement('div');
     temp.innerHTML = textarea.value;
 
-    // Mover nodos al livePreview del iframe
+    // Insertar elementos no script
     Array.from(temp.childNodes).forEach(node => {
-        livePreview.appendChild(doc.importNode(node, true));
+        if(node.tagName !== 'SCRIPT'){
+            livePreview.appendChild(doc.importNode(node, true));
+        }
+    });
+
+    // Ejecutar scripts
+    const scripts = Array.from(temp.querySelectorAll('script'));
+    scripts.forEach(s => {
+        const newScript = doc.createElement('script');
+        if(s.src) newScript.src = s.src;
+        else newScript.textContent = s.textContent;
+        livePreview.appendChild(newScript);
     });
 }
 
