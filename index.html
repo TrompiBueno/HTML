@@ -49,12 +49,40 @@ const textarea = document.getElementById('htmlInput');
 const lineNumbers = document.getElementById('line-numbers');
 const preview = document.getElementById('preview');
 
-// Actualiza la preview recargando todo el iframe
-function updatePreview(){
-    const doc = preview.contentDocument || preview.contentWindow.document;
-    doc.open();
-    doc.write(textarea.value);
-    doc.close();
+// Inicializa el iframe con un contenedor donde inyectaremos HTML
+const doc = preview.contentDocument || preview.contentWindow.document;
+doc.open();
+doc.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { margin:0; font-family: sans-serif; }
+</style>
+</head>
+<body>
+<div id="livePreview"></div>
+</body>
+</html>`);
+doc.close();
+
+const livePreview = doc.getElementById('livePreview');
+
+// Actualiza la preview sin recargar el iframe
+function updatePreview() {
+    // Elimina contenido anterior
+    while (livePreview.firstChild) {
+        livePreview.removeChild(livePreview.firstChild);
+    }
+
+    // Crear un contenedor temporal para parsear el HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = textarea.value;
+
+    // Mover nodos al livePreview del iframe
+    Array.from(temp.childNodes).forEach(node => {
+        livePreview.appendChild(doc.importNode(node, true));
+    });
 }
 
 // Numeración de líneas
