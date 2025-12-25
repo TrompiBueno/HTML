@@ -1,139 +1,130 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor HTML</title>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Fira Code', monospace; height:100vh; display:flex; flex-direction:column; background:#0d0d0d; color:#fff; }
-header { padding:12px 20px; font-size:26px; font-weight:500; text-align:center; background:linear-gradient(90deg,#00ff66,#0f0f0f); color:#000; border-bottom:2px solid #1f1f1f; letter-spacing:1px; }
-#container { flex:1; display:flex; overflow:hidden; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor HTML</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* Panel código */
-#editor-panel { flex:1; min-width:300px; max-width:50%; background:#111; display:flex; flex-direction:column; border-right:3px solid #1f1f1f; }
-#editor-wrapper { display:flex; flex:1; overflow:hidden; }
-#line-numbers { width:40px; background:#0b0b0b; color:#555; padding:8px 5px; text-align:right; user-select:none; overflow:hidden; font-size:16px; line-height:22px; }
-#line-numbers span { display:block; }
-textarea { flex:1; font-family:'Fira Code', monospace; font-size:16px; line-height:22px; padding:8px 12px; border:none; background:#111; color:#00ff66; resize:none; outline:none; caret-color:#00ff66; overflow:auto; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* Panel preview */
-#preview-panel { flex:1; margin-left:12px; border-radius:8px; overflow:hidden; display:flex; flex-direction:column; box-shadow: 0 0 25px rgba(0,255,102,0.25); }
-iframe { flex:1; width:100%; height:100%; border:none; border-radius:8px; background:#fff; }
+    /* Encabezado superior verde */
+    header {
+      background-color: #28a745;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
 
-/* Footer */
-footer { padding:12px 20px; text-align:center; background:#111111; color:#00ff66; font-size:14px; border-top:2px solid #1f1f1f; }
-</style>
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      background-color: #1c7c31;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Editor negro */
+    #editor {
+      flex: 1;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      padding: 15px;
+      border: none;
+      outline: none;
+      resize: none;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    #editor::before {
+      content: attr(data-placeholder);
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: #555;
+      font-family: 'Courier New', monospace;
+      pointer-events: none;
+      white-space: pre-wrap;
+    }
+
+    #editor:not(:empty)::before {
+      content: "";
+    }
+
+    /* Preview blanco */
+    #preview {
+      flex: 1;
+      border: none;
+      background-color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .panel {
+        height: 50%;
+      }
+    }
+  </style>
 </head>
 <body>
 
 <header>Editor HTML</header>
 
-<div id="container">
-    <div id="editor-panel">
-        <div id="editor-wrapper">
-            <div id="line-numbers"></div>
-            <textarea id="htmlInput" placeholder="Escribe tu HTML aquí..."></textarea>
-        </div>
-    </div>
-    <div id="preview-panel">
-        <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
-    </div>
+<div class="container">
+  <div class="panel">
+    <div class="panel-header">Código</div>
+    <div id="editor" contenteditable="true" data-placeholder="Ingrese aquí su código HTML..."></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">Preview</div>
+    <iframe id="preview"></iframe>
+  </div>
 </div>
 
-<footer>Por Miguel Ojeda de 3ºC</footer>
-
 <script>
-const textarea = document.getElementById('htmlInput');
-const lineNumbers = document.getElementById('line-numbers');
-const preview = document.getElementById('preview');
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
 
-// Inicializa iframe con un contenedor de live preview
-const doc = preview.contentDocument || preview.contentWindow.document;
-doc.open();
-doc.write(`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<style>
-  body { margin:0; font-family: sans-serif; }
-</style>
-</head>
-<body>
-<div id="livePreview"></div>
-</body>
-</html>`);
-doc.close();
+  function updatePreview() {
+    preview.srcdoc = editor.innerText;
+  }
 
-const livePreview = doc.getElementById('livePreview');
+  editor.addEventListener('input', updatePreview);
 
-// Actualiza la preview sin recargar el iframe
-function updatePreview() {
-    // Limpiar contenido
-    while (livePreview.firstChild) livePreview.removeChild(livePreview.firstChild);
-
-    // Crear contenedor temporal para parsear HTML
-    const temp = document.createElement('div');
-    temp.innerHTML = textarea.value;
-
-    // Insertar elementos no script
-    Array.from(temp.childNodes).forEach(node => {
-        if(node.tagName !== 'SCRIPT'){
-            livePreview.appendChild(doc.importNode(node, true));
-        }
-    });
-
-    // Ejecutar scripts
-    const scripts = Array.from(temp.querySelectorAll('script'));
-    scripts.forEach(s => {
-        const newScript = doc.createElement('script');
-        if(s.src) newScript.src = s.src;
-        else newScript.textContent = s.textContent;
-        livePreview.appendChild(newScript);
-    });
-}
-
-// Numeración de líneas
-function updateLineNumbers(){
-    const lines = textarea.value.split("\n").length || 1;
-    lineNumbers.innerHTML = "";
-    for(let i=1;i<=lines;i++){
-        const s = document.createElement("span");
-        s.textContent = i;
-        lineNumbers.appendChild(s);
-    }
-}
-
-// Eventos
-textarea.addEventListener('input', () => {
-    updateLineNumbers();
-    updatePreview();
-});
-textarea.addEventListener('scroll', () => { lineNumbers.scrollTop = textarea.scrollTop; });
-
-// Inicial
-updateLineNumbers();
-updatePreview();
-
-// Resize simple del panel código
-const editorPanel = document.getElementById('editor-panel');
-const container = document.getElementById('container');
-let isResizing = false;
-editorPanel.addEventListener('mousedown', e => {
-    if(e.offsetX > editorPanel.offsetWidth-10){
-        isResizing = true;
-        document.body.style.cursor = 'ew-resize';
-    }
-});
-document.addEventListener('mousemove', e => {
-    if(!isResizing) return;
-    let w = e.clientX - container.offsetLeft;
-    if(w<300) w=300;
-    if(w>container.offsetWidth*0.7) w = container.offsetWidth*0.7;
-    editorPanel.style.flex = `0 0 ${w}px`;
-});
-document.addEventListener('mouseup', ()=>{ if(isResizing){ isResizing=false; document.body.style.cursor='default'; }});
+  updatePreview();
 </script>
 
 </body>
