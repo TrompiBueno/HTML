@@ -49,11 +49,35 @@ const textarea = document.getElementById('htmlInput');
 const lineNumbers = document.getElementById('line-numbers');
 const preview = document.getElementById('preview');
 
-// Actualiza el preview en iframe
+// Actualiza la preview ejecutando todo el código, incluido canvas
 function updatePreview(){
     const doc = preview.contentDocument || preview.contentWindow.document;
+    const content = textarea.value;
     doc.open();
-    doc.write(textarea.value);
+    doc.write(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+${content}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Re-ejecuta scripts escritos en el textarea
+  const scripts = Array.from(document.querySelectorAll('script')).filter(s => !s._executed);
+  scripts.forEach(s=>{
+    const newScript = document.createElement('script');
+    if(s.src) newScript.src = s.src;
+    else newScript.textContent = s.textContent;
+    s._executed = true;
+    document.body.appendChild(newScript);
+  });
+});
+<\/script>
+</body>
+</html>
+    `);
     doc.close();
 }
 
