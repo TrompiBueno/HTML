@@ -1,131 +1,241 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editor HTML</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor HTML Hacker</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #0a0a0a;
+    color: #0f0;
+    overflow: hidden;
+  }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+  header {
+    background: linear-gradient(90deg, #004d00, #002200);
+    color: #0f0;
+    text-align: center;
+    padding: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+  }
 
-    /* Encabezado superior verde */
-    header {
-      background-color: #28a745;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    }
+  .horizontal-line {
+    height: 2px;
+    background: #0f0;
+    margin: 0;
+    position: relative;
+  }
 
-    .container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+  .container {
+    display: flex;
+    flex: 1;
+    height: calc(100% - 66px); /* header + line */
+    position: relative;
+    background: #003300;
+  }
 
-    .panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-    .panel-header {
-      background-color: #1c7c31;
-      color: white;
-      text-align: center;
-      padding: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      letter-spacing: 0.5px;
-    }
+  .panel-header {
+    background: linear-gradient(90deg, #006600, #003300);
+    color: #0f0;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 0 0 5px #0f0;
+  }
 
-    /* Editor negro */
-    #editor {
-      flex: 1;
-      background-color: #000;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 16px;
-      padding: 15px;
-      border: none;
-      outline: none;
-      resize: none;
-      overflow-y: auto;
-      position: relative;
-    }
+  #editor-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+  }
 
-    #editor::before {
-      content: attr(data-placeholder);
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      color: #555;
-      font-family: 'Courier New', monospace;
-      pointer-events: none;
-      white-space: pre-wrap;
-    }
+  #line-numbers {
+    background-color: #002200;
+    color: #0f0;
+    padding: 10px;
+    text-align: right;
+    user-select: none;
+    font-size: 16px;
+  }
 
-    #editor:not(:empty)::before {
-      content: "";
-    }
+  #editor {
+    flex: 1;
+    background-color: #001a00;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    padding: 10px;
+    white-space: pre-wrap;
+    overflow: auto;
+    caret-color: #0f0;
+    outline: none;
+  }
 
-    /* Preview blanco */
-    #preview {
-      flex: 1;
-      border: none;
-      background-color: #fff;
-    }
+  #editor::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    color: #555;
+    pointer-events: none;
+  }
 
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-      .panel {
-        height: 50%;
-      }
-    }
-  </style>
+  #editor:focus::before { display: none; }
+
+  #preview {
+    flex: 1;
+    border: none;
+    background-color: #fff;
+  }
+
+  /* Splitter vertical */
+  #splitter {
+    width: 4px;
+    background: #0f0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  /* Círculo en la parte superior del splitter */
+  #splitter-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: -15px;
+    left: -13px;
+    cursor: grab;
+    box-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+    user-select: none;
+  }
+</style>
 </head>
 <body>
 
-<header>Editor HTML</header>
+<header>Editor HTML Hacker</header>
+<div class="horizontal-line"></div>
 
-<div class="container">
-  <div class="panel">
-    <div class="panel-header">Código</div>
-    <div id="editor" contenteditable="true" data-placeholder="Ingrese aquí su código HTML..."></div>
+<div class="container" id="container">
+  <div class="panel" id="editor-panel">
+    <div class="panel-header">Editor</div>
+    <div id="editor-container">
+      <div id="line-numbers">1</div>
+      <div id="editor" contenteditable="true" data-placeholder="Ingrese su código HTML aquí..."></div>
+    </div>
   </div>
-  <div class="panel">
+
+  <div id="splitter">
+    <div id="splitter-circle">&lt;&gt;</div>
+  </div>
+
+  <div class="panel" id="preview-panel">
     <div class="panel-header">Preview</div>
     <iframe id="preview"></iframe>
   </div>
 </div>
 
 <script>
-  const editor = document.getElementById('editor');
-  const preview = document.getElementById('preview');
+const editor = document.getElementById('editor');
+const lineNumbers = document.getElementById('line-numbers');
+const preview = document.getElementById('preview');
+const splitter = document.getElementById('splitter');
+const splitterCircle = document.getElementById('splitter-circle');
+const editorPanel = document.getElementById('editor-panel');
+const previewPanel = document.getElementById('preview-panel');
 
-  function updatePreview() {
-    preview.srcdoc = editor.innerText;
-  }
+// Posicionar splitter en el centro al inicio
+const container = document.getElementById('container');
+let containerWidth = container.offsetWidth;
+let initialSplitterPos = containerWidth / 2;
+splitter.style.left = initialSplitterPos + 'px';
 
-  editor.addEventListener('input', updatePreview);
+// Syntax Highlight
+function syntaxHighlight(text){
+  text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  text = text.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="comment">$1</span>');
+  text = text.replace(/(&lt;\/?[a-zA-Z0-9]+)(\s|&gt;)/g, '<span class="tag">$1</span>$2');
+  text = text.replace(/([a-zA-Z-]+)=/g, '<span class="attribute">$1</span>=');
+  text = text.replace(/"(.*?)"/g, '<span class="value">"$1"</span>');
+  return text;
+}
 
-  updatePreview();
+// Update lines
+function updateLineNumbers(){
+  const lines = editor.innerText.split('\n').length;
+  lineNumbers.innerHTML = Array.from({length: lines}, (_, i) => i+1).join('<br>');
+}
+
+// Update editor
+function updateEditor(){
+  const text = editor.innerText;
+  const selection = window.getSelection();
+  const range = document.createRange();
+  const cursorPos = selection.focusOffset;
+  editor.innerHTML = syntaxHighlight(text);
+  updateLineNumbers();
+  try{
+    range.setStart(editor.childNodes[0] || editor, cursorPos);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }catch(e){}
+  preview.srcdoc = text;
+}
+
+editor.addEventListener('input', updateEditor);
+editor.addEventListener('scroll', ()=>{lineNumbers.scrollTop = editor.scrollTop;});
+editor.innerText = '';
+updateEditor();
+
+// Splitter drag
+let isDragging = false;
+
+splitterCircle.addEventListener('mousedown',()=>{isDragging=true;});
+splitterCircle.addEventListener('touchstart',()=>{isDragging=true;});
+document.addEventListener('mouseup',()=>{isDragging=false;});
+document.addEventListener('touchend',()=>{isDragging=false;});
+
+function moveSplitter(clientX){
+  const containerRect = container.getBoundingClientRect();
+  let newWidth = clientX - containerRect.left;
+  if(newWidth < 150) newWidth = 150;
+  if(newWidth > containerRect.width - 150) newWidth = containerRect.width - 150;
+  editorPanel.style.flex = `0 0 ${newWidth}px`;
+  splitter.style.left = newWidth + 'px';
+}
+
+document.addEventListener('mousemove',(e)=>{
+  if(!isDragging) return;
+  moveSplitter(e.clientX);
+});
+
+document.addEventListener('touchmove',(e)=>{
+  if(!isDragging) return;
+  moveSplitter(e.touches[0].clientX);
+});
 </script>
-
 </body>
 </html>
