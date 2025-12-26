@@ -1,243 +1,246 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor HTML Hacker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor HTML Hacker</title>
 
-<style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  background:#0a0a0a;
-  font-family:"Courier New", monospace;
-  color:#0f0;
-  overflow:hidden;
-}
+    <style>
+        body{
+            margin:0;
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+            background:#0a0a0a;
+            font-family:"Courier New", monospace;
+            color:#0f0;
+            overflow:hidden;
+        }
 
-header{
-  background:linear-gradient(90deg,#003300,#001a00);
-  color:#0f0;
-  text-align:center;
-  padding:14px;
-  font-size:24px;
-  font-weight:bold;
-  text-shadow:0 0 6px #0f0,0 0 12px #0f0;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+        header{
+            background:linear-gradient(90deg,#003300,#001a00);
+            text-align:center;
+            padding:14px;
+            font-size:24px;
+            font-weight:bold;
+            text-shadow:0 0 6px #0f0,0 0 12px #0f0;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
 
-header button{
-  background:linear-gradient(90deg,#0f0,#006600);
-  border:none;
-  color:#000;
-  font-weight:bold;
-  padding:6px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  box-shadow:0 0 6px #0f0;
-}
+        header button{
+            background:linear-gradient(90deg,#0f0,#006600);
+            border:none;
+            color:#000;
+            font-weight:bold;
+            padding:6px 14px;
+            border-radius:6px;
+            cursor:pointer;
+            box-shadow:0 0 6px #0f0;
+        }
 
-.separator{
-  height:2px;
-  background:#0f0;
-}
+        .separator{
+            height:2px;
+            background:#0f0;
+        }
 
-.container{
-  flex:1;
-  display:flex;
-  position:relative;
-  background:#002200;
-}
+        .container{
+            flex:1;
+            display:flex;
+            position:relative;
+            background:#002200;
+        }
 
-.panel{
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
+        .panel{
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
 
-.panel-header{
-  background:linear-gradient(90deg,#005500,#002200);
-  padding:8px;
-  text-align:center;
-  font-weight:bold;
-  text-shadow:0 0 4px #0f0;
-}
+        .panel-header{
+            background:linear-gradient(90deg,#005500,#002200);
+            padding:8px;
+            text-align:center;
+            font-weight:bold;
+            text-shadow:0 0 4px #0f0;
+        }
 
-#editor-panel{
-  flex:0 0 50%;
-}
+        #editor-panel{
+            flex:0 0 50%;
+        }
 
-#editor-container{
-  flex:1;
-  display:flex;
-}
+        #editor-container{
+            flex:1;
+            display:flex;
+        }
 
-#line-numbers{
-  background:#001a00;
-  padding:10px;
-  text-align:right;
-  user-select:none;
-  line-height:1.35em;
-}
+        #line-numbers{
+            background:#001a00;
+            padding:10px;
+            text-align:right;
+            user-select:none;
+            line-height:1.35em;
+        }
 
-#editor{
-  flex:1;
-  padding:10px;
-  outline:none;
-  white-space:pre-wrap;
-  overflow:auto;
-  caret-color:#0f0;
-  line-height:1.35em;
-}
+        #editor{
+            flex:1;
+            padding:10px;
+            outline:none;
+            white-space:pre-wrap;
+            overflow:auto;
+            caret-color:#0f0;
+            line-height:1.35em;
+            position:relative;
+        }
 
-#editor::before{
-  content:attr(data-placeholder);
-  position:absolute;
-  color:#555;
-  pointer-events:none;
-}
+        #editor:empty::before{
+            content:attr(data-placeholder);
+            color:#555;
+            position:absolute;
+            pointer-events:none;
+        }
 
-#editor:focus::before{
-  display:none;
-}
+        #preview{
+            flex:1;
+            border:none;
+            background:#fff;
+        }
 
-#preview{
-  flex:1;
-  border:none;
-  background:#fff;
-}
+        /* Splitter */
+        #splitter{
+            width:4px;
+            background:#0f0;
+            position:absolute;
+            top:0;
+            bottom:0;
+            z-index:10;
+        }
 
-/* Splitter */
-#splitter{
-  width:4px;
-  background:#0f0;
-  position:absolute;
-  top:0;
-  bottom:0;
-  z-index:10;
-}
-
-#splitter-circle{
-  width:30px;
-  height:30px;
-  border-radius:50%;
-  background:#0f0;
-  color:#000;
-  font-weight:bold;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:absolute;
-  top:-15px;
-  left:-13px;
-  cursor:grab;
-  box-shadow:0 0 10px #0f0,0 0 20px #0f0;
-}
-</style>
+        #splitter-circle{
+            width:30px;
+            height:30px;
+            border-radius:50%;
+            background:#0f0;
+            color:#000;
+            font-weight:bold;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            position:absolute;
+            top:-15px;
+            left:-13px;
+            cursor:grab;
+            box-shadow:0 0 10px #0f0,0 0 20px #0f0;
+        }
+    </style>
 </head>
 
 <body>
 
 <header>
-  Editor HTML Hacker
-  <button id="openPreview">Ver Preview</button>
+    Editor HTML Hacker
+    <button id="openPreview">Ver Preview</button>
 </header>
 
 <div class="separator"></div>
 
 <div class="container" id="container">
 
-  <div class="panel" id="editor-panel">
-    <div class="panel-header">Editor</div>
-    <div id="editor-container">
-      <div id="line-numbers">1</div>
-      <div id="editor" contenteditable="true" data-placeholder="Ingrese su código HTML aquí..."></div>
+    <div class="panel" id="editor-panel">
+        <div class="panel-header">Editor</div>
+        <div id="editor-container">
+            <div id="line-numbers">1</div>
+            <div id="editor" contenteditable="true"
+                 data-placeholder="Ingrese su código HTML aquí..."></div>
+        </div>
     </div>
-  </div>
 
-  <div id="splitter">
-    <div id="splitter-circle">&lt;&gt;</div>
-  </div>
+    <div id="splitter">
+        <div id="splitter-circle">&lt;&gt;</div>
+    </div>
 
-  <div class="panel" style="flex:1">
-    <div class="panel-header">Preview</div>
-    <iframe id="preview"></iframe>
-  </div>
+    <div class="panel" style="flex:1">
+        <div class="panel-header">Preview</div>
+        <iframe id="preview"></iframe>
+    </div>
 
 </div>
 
 <script>
-const editor = document.getElementById("editor");
-const lineNumbers = document.getElementById("line-numbers");
-const preview = document.getElementById("preview");
-const container = document.getElementById("container");
-const editorPanel = document.getElementById("editor-panel");
-const splitter = document.getElementById("splitter");
-const splitterCircle = document.getElementById("splitter-circle");
-const openPreview = document.getElementById("openPreview");
+    const editor = document.getElementById("editor");
+    const lineNumbers = document.getElementById("line-numbers");
+    const preview = document.getElementById("preview");
+    const container = document.getElementById("container");
+    const editorPanel = document.getElementById("editor-panel");
+    const splitter = document.getElementById("splitter");
+    const splitterCircle = document.getElementById("splitter-circle");
+    const openPreview = document.getElementById("openPreview");
 
-/* Posición inicial del splitter */
-const startWidth = container.offsetWidth / 2;
-editorPanel.style.flex = `0 0 ${startWidth}px`;
-splitter.style.left = startWidth + "px";
+    /* Posición inicial del splitter */
+    const startWidth = container.offsetWidth / 2;
+    editorPanel.style.flex = `0 0 ${startWidth}px`;
+    splitter.style.left = startWidth + "px";
 
-/* NÚMEROS DE LÍNEA PERFECTOS */
-function updateLineNumbers(){
-  let text = editor.innerText.replace(/\r/g,"");
-  let lines = text.split("\n");
+    /* Números de línea */
+    function updateLineNumbers(){
+        let text = editor.innerText.replace(/\r/g,"");
+        let lines = text.split("\n");
 
-  /* eliminar salto fantasma final */
-  if(lines.length > 1 && lines[lines.length-1] === ""){
-    lines.pop();
-  }
+        if(lines.length > 1 && lines[lines.length - 1] === ""){
+            lines.pop();
+        }
 
-  let out = "";
-  for(let i=1;i<=lines.length;i++){
-    out += i + "<br>";
-  }
-  if(out === "") out = "1";
-  lineNumbers.innerHTML = out;
-}
+        let out = "";
+        for(let i = 1; i <= lines.length; i++){
+            out += i + "<br>";
+        }
 
-/* Preview */
-function updatePreview(){
-  preview.srcdoc = editor.innerText;
-  updateLineNumbers();
-}
+        lineNumbers.innerHTML = out || "1";
+    }
 
-editor.addEventListener("input", updatePreview);
-editor.addEventListener("scroll", ()=> lineNumbers.scrollTop = editor.scrollTop);
-updatePreview();
+    /* Preview */
+    function updatePreview(){
+        preview.srcdoc = editor.innerText;
+        updateLineNumbers();
+    }
 
-/* Splitter drag */
-let dragging = false;
-splitterCircle.addEventListener("mousedown",()=>dragging=true);
-splitterCircle.addEventListener("touchstart",()=>dragging=true);
-document.addEventListener("mouseup",()=>dragging=false);
-document.addEventListener("touchend",()=>dragging=false);
+    editor.addEventListener("input", updatePreview);
+    editor.addEventListener("scroll", () => {
+        lineNumbers.scrollTop = editor.scrollTop;
+    });
 
-function moveSplitter(x){
-  const rect = container.getBoundingClientRect();
-  let w = x - rect.left;
-  if(w < 150) w = 150;
-  if(w > rect.width - 150) w = rect.width - 150;
-  editorPanel.style.flex = `0 0 ${w}px`;
-  splitter.style.left = w + "px";
-}
+    updatePreview();
 
-document.addEventListener("mousemove",e=>dragging && moveSplitter(e.clientX));
-document.addEventListener("touchmove",e=>dragging && moveSplitter(e.touches[0].clientX));
+    /* Splitter drag */
+    let dragging = false;
 
-/* Abrir preview */
-openPreview.addEventListener("click",()=>{
-  const w = window.open();
-  w.document.write(editor.innerText);
-  w.document.close();
-});
+    splitterCircle.addEventListener("mousedown", () => dragging = true);
+    splitterCircle.addEventListener("touchstart", () => dragging = true);
+
+    document.addEventListener("mouseup", () => dragging = false);
+    document.addEventListener("touchend", () => dragging = false);
+
+    function moveSplitter(x){
+        const rect = container.getBoundingClientRect();
+        let w = x - rect.left;
+
+        if(w < 150) w = 150;
+        if(w > rect.width - 150) w = rect.width - 150;
+
+        editorPanel.style.flex = `0 0 ${w}px`;
+        splitter.style.left = w + "px";
+    }
+
+    document.addEventListener("mousemove", e => dragging && moveSplitter(e.clientX));
+    document.addEventListener("touchmove", e => dragging && moveSplitter(e.touches[0].clientX));
+
+    /* Abrir preview en nueva ventana */
+    openPreview.addEventListener("click", () => {
+        const w = window.open();
+        w.document.write(editor.innerText);
+        w.document.close();
+    });
 </script>
 
 </body>
