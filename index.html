@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor HTML</title>
+<title>Editor HTML Hacker</title>
 
 <style>
 *{ box-sizing:border-box; }
@@ -33,14 +33,19 @@ header h1{
     text-shadow:0 0 8px #0f0;
 }
 
-header button{
+.header-buttons{
     position:absolute;
-    right:14px;
+    right:10px;
     top:50%;
     transform:translateY(-50%);
+    display:flex;
+    gap:8px;
+}
+
+header button{
     background:#0f0;
     border:none;
-    padding:6px 14px;
+    padding:6px 12px;
     font-weight:bold;
     cursor:pointer;
 }
@@ -114,8 +119,12 @@ header button{
 <body>
 
 <header>
-    <h1>Editor HTML</h1>
-    <button id="openPreview">Ver preview</button>
+    <h1>Editor HTML Hacker</h1>
+    <div class="header-buttons">
+        <button id="copyCode">Copiar</button>
+        <button id="pasteCode">Pegar</button>
+        <button id="openPreview">Ver preview</button>
+    </div>
 </header>
 
 <div class="container">
@@ -142,7 +151,10 @@ header button{
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const lineNumbers = document.getElementById("line-numbers");
+
 const btnPreview = document.getElementById("openPreview");
+const btnCopy = document.getElementById("copyCode");
+const btnPaste = document.getElementById("pasteCode");
 
 /* LINE NUMBERS */
 function updateLineNumbers(){
@@ -172,6 +184,18 @@ btnPreview.addEventListener("click", () => {
     w.document.open();
     w.document.write(editor.value);
     w.document.close();
+});
+
+/* COPY CODE */
+btnCopy.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(editor.value);
+});
+
+/* PASTE CODE */
+btnPaste.addEventListener("click", async () => {
+    const text = await navigator.clipboard.readText();
+    editor.value += text;
+    updatePreview();
 });
 
 /* INIT */
