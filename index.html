@@ -79,6 +79,7 @@ header button{
     flex:1;
     display:flex;
     overflow:hidden;
+    height:100%; /* para que los números llenen todo el alto */
 }
 
 #line-numbers{
@@ -86,6 +87,9 @@ header button{
     padding:10px 6px;
     text-align:right;
     user-select:none;
+    overflow:hidden; /* el scroll se sincroniza */
+    height:100%;
+    flex-shrink:0;
 }
 
 #line-numbers div{
@@ -158,11 +162,11 @@ const btnPaste = document.getElementById("pasteCode");
 
 /* LINE NUMBERS */
 function updateLineNumbers(){
-    const lines = editor.value === "" ? 1 : editor.value.split("\n").length;
+    const lines = editor.value.split("\n").length;
     lineNumbers.innerHTML = "";
     for(let i = 1; i <= lines; i++){
         const d = document.createElement("div");
-        d.textContent = i;
+        d.textContent = i; // número de línea exacto
         lineNumbers.appendChild(d);
     }
 }
@@ -173,12 +177,15 @@ function updatePreview(){
     updateLineNumbers();
 }
 
-editor.addEventListener("input", updatePreview);
+// Mantener los números de línea sincronizados al hacer scroll
 editor.addEventListener("scroll", () => {
     lineNumbers.scrollTop = editor.scrollTop;
 });
 
-/* OPEN PREVIEW IN NEW TAB */
+// Actualizar números al escribir o pegar
+editor.addEventListener("input", updatePreview);
+
+// Abrir preview en nueva pestaña
 btnPreview.addEventListener("click", () => {
     const w = window.open();
     w.document.open();
@@ -186,12 +193,12 @@ btnPreview.addEventListener("click", () => {
     w.document.close();
 });
 
-/* COPY CODE */
+// Copiar código
 btnCopy.addEventListener("click", async () => {
     await navigator.clipboard.writeText(editor.value);
 });
 
-/* PASTE CODE */
+// Pegar código
 btnPaste.addEventListener("click", async () => {
     const text = await navigator.clipboard.readText();
     editor.value += text;
