@@ -1,212 +1,142 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor HTML</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width">
+    <title>Editor HTML</title>
 
-<style>
-*{ box-sizing:border-box; }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.js"></script>
 
-body{
-    margin:0;
-    height:100vh;
-    font-family:"Courier New", monospace;
-    background:#0a0a0a;
-    color:#0f0;
-}
+    <style>
+        body {
+            margin: 0;
+            background: #050505;
+            color: #00ff88;
+            font-family: monospace;
+            overflow: hidden;
+        }
 
-/* HEADER */
-header{
-    height:56px;
-    background:linear-gradient(90deg,#003300,#001a00);
-    position:relative;
-}
+        #view {
+            display: flex;
+            height: 100vh;
+        }
 
-header h1{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    margin:0;
-    font-size:22px;
-    text-shadow:0 0 8px #0f0;
-}
+        #sidebar {
+            width: 220px;
+            background: #000;
+            border-right: 1px solid #00ff88;
+            padding: 12px;
+        }
 
-.header-buttons{
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform:translateY(-50%);
-    display:flex;
-    gap:8px;
-}
+        #title {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            color: #00ff88;
+        }
 
-header button{
-    background:#0f0;
-    border:none;
-    padding:6px 12px;
-    font-weight:bold;
-    cursor:pointer;
-}
+        button {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+        }
 
-/* LAYOUT */
-.container{
-    height:calc(100vh - 56px);
-    display:flex;
-}
+        button:hover {
+            background: #00ff88;
+            color: black;
+        }
 
-/* PANELS */
-.panel{
-    width:50%;
-    display:flex;
-    flex-direction:column;
-    border-right:2px solid #003300;
-}
+        #content {
+            flex: 1;
+            display: flex;
+            height: 100vh;
+        }
 
-.panel:last-child{
-    border-right:none;
-}
+        #editor {
+            width: 50%;
+            height: 100vh;
+        }
 
-.panel-header{
-    background:#003300;
-    padding:6px;
-    text-align:center;
-}
+        #preview {
+            width: 50%;
+            height: 100vh;
+            border: none;
+            background: white;
+        }
 
-/* EDITOR */
-.editor-wrapper{
-    flex:1;
-    display:flex;
-    overflow:hidden;
-    height:100%; /* para que los números llenen todo el alto */
-}
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
 
-#line-numbers{
-    background:#001a00;
-    padding:10px 6px;
-    text-align:right;
-    user-select:none;
-    overflow:hidden; /* el scroll se sincroniza */
-    height:100%;
-    flex-shrink:0;
-}
-
-#line-numbers div{
-    height:20px;
-    line-height:20px;
-}
-
-#editor{
-    flex:1;
-    background:#000;
-    color:#0f0;
-    border:none;
-    outline:none;
-    resize:none;
-    padding:10px;
-    font-family:inherit;
-    font-size:14px;
-    line-height:20px;
-    overflow:auto;
-}
-
-/* PREVIEW */
-#preview{
-    flex:1;
-    border:none;
-    background:#fff;
-}
-</style>
+        ::selection {
+            background: #00ff88;
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-    <h1>Editor HTML</h1>
-    <div class="header-buttons">
-        <button id="copyCode">Copiar</button>
-        <button id="pasteCode">Pegar</button>
-        <button id="openPreview">Ver preview</button>
-    </div>
-</header>
+<div id="view">
 
-<div class="container">
+    <div id="sidebar">
+        <div id="title">EDITOR HTML</div>
 
-    <!-- EDITOR -->
-    <div class="panel">
-        <div class="panel-header">Editor</div>
-        <div class="editor-wrapper">
-            <div id="line-numbers"></div>
-            <textarea id="editor" spellcheck="false"
-            placeholder="Escribe tu HTML aquí..."></textarea>
-        </div>
+        <button onclick="copyCode()">Copiar</button>
+        <button onclick="pasteCode()">Pegar</button>
+        <button onclick="runPreview()">Preview</button>
+
+        <div class="footer">Por Miguel Ojeda</div>
     </div>
 
-    <!-- PREVIEW -->
-    <div class="panel">
-        <div class="panel-header">Preview</div>
+    <div id="content">
+        <div id="editor"></div>
         <iframe id="preview"></iframe>
     </div>
 
 </div>
 
 <script>
-const editor = document.getElementById("editor");
-const preview = document.getElementById("preview");
-const lineNumbers = document.getElementById("line-numbers");
+    // Editor Ace
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/html");
 
-const btnPreview = document.getElementById("openPreview");
-const btnCopy = document.getElementById("copyCode");
-const btnPaste = document.getElementById("pasteCode");
 
-/* LINE NUMBERS */
-function updateLineNumbers(){
-    const lines = editor.value.split("\n").length;
-    lineNumbers.innerHTML = "";
-    for(let i = 1; i <= lines; i++){
-        const d = document.createElement("div");
-        d.textContent = i; // número de línea exacto
-        lineNumbers.appendChild(d);
+    // IMPORTANTE: actualizar tamaño correcto
+    editor.resize();
+
+    // Preview en tiempo real
+    function updatePreview() {
+        document.getElementById("preview").srcdoc = editor.getValue();
     }
-}
 
-/* LIVE PREVIEW */
-function updatePreview(){
-    preview.srcdoc = editor.value;
-    updateLineNumbers();
-}
-
-// Mantener los números de línea sincronizados al hacer scroll
-editor.addEventListener("scroll", () => {
-    lineNumbers.scrollTop = editor.scrollTop;
-});
-
-// Actualizar números al escribir o pegar
-editor.addEventListener("input", updatePreview);
-
-// Abrir preview en nueva pestaña
-btnPreview.addEventListener("click", () => {
-    const w = window.open();
-    w.document.open();
-    w.document.write(editor.value);
-    w.document.close();
-});
-
-// Copiar código
-btnCopy.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(editor.value);
-});
-
-// Pegar código
-btnPaste.addEventListener("click", async () => {
-    const text = await navigator.clipboard.readText();
-    editor.value += text;
+    editor.session.on("change", updatePreview);
     updatePreview();
-});
 
-/* INIT */
-updatePreview();
+    // botones
+    function runPreview() {
+        updatePreview();
+    }
+
+    function copyCode() {
+        navigator.clipboard.writeText(editor.getValue());
+    }
+
+    async function pasteCode() {
+        const text = await navigator.clipboard.readText();
+        editor.setValue(text, 1);
+    }
 </script>
 
 </body>
