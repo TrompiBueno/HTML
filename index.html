@@ -107,16 +107,10 @@
 </div>
 
 <script>
-    // Editor Ace
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/html");
 
-
-    // IMPORTANTE: actualizar tamaño correcto
-    editor.resize();
-
-    // Preview en tiempo real
     function updatePreview() {
         document.getElementById("preview").srcdoc = editor.getValue();
     }
@@ -124,9 +118,11 @@
     editor.session.on("change", updatePreview);
     updatePreview();
 
-    // botones
     function runPreview() {
-        updatePreview();
+        const win = window.open("", "_blank");
+        win.document.open();
+        win.document.write(editor.getValue());
+        win.document.close();
     }
 
     function copyCode() {
@@ -137,6 +133,11 @@
         const text = await navigator.clipboard.readText();
         editor.setValue(text, 1);
     }
+
+    window.onload = () => {
+        editor.resize();
+        updatePreview();
+    };
 </script>
 
 </body>
